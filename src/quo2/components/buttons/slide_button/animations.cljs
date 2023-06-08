@@ -9,7 +9,11 @@
    [oops.core :as oops]
    [react-native.reanimated :as reanimated]))
 
-(defn init-animations [] {:x-pos (reanimated/use-shared-value 0)})
+(defn init-animations [] {:x-pos (reanimated/use-shared-value 0)
+                          :thumb-border-radius (reanimated/use-shared-value 12)
+                          :track-scale (reanimated/use-shared-value 1)
+                          :track-border-radius (reanimated/use-shared-value 14)
+                          :track-container-padding (reanimated/use-shared-value 0)})
 
 (defn calc-usable-track [track-width thumb-size]
   [0 (- (or @track-width 200) (* track-padding 2) thumb-size)])
@@ -44,11 +48,13 @@
    track-width
    thumb-size]
   (let [x-translation (oops/oget event "translationX")
-        x (+ x-translation @offset)]
-    (doall [(reanimated/set-shared-value x-pos x)
+        x (+ x-translation @offset)
+        reached-end? (>= x (get (calc-usable-track track-width thumb-size) 1))]
+    (doall [(when (not reached-end?)
+              (reanimated/set-shared-value x-pos x))
             (doall [(when (= @thumb-state :rest)
                       (reset! thumb-state :dragging))
-                    (when (>= x (get (calc-usable-track track-width thumb-size) 1))
+                    (when reached-end?
                       (reset! thumb-state :complete))])])))
 
 (defn- gesture-on-end
@@ -70,6 +76,7 @@
    thumb-size]
   (let [offset (react/state 0)
         complete-threshold (* @track-width threshold-frac)]
+    (println (str "disabled gestures: " disabled?))
     (-> (gesture/gesture-pan)
         (gesture/enabled (not disabled?))
         (gesture/on-update
@@ -82,14 +89,47 @@
          (fn [_]
            (reset! offset (reanimated/get-shared-value x-pos)))))))
 
-(defn animate-slide
-  [value to-position]
+(defn animate-spring
+  [value to-value]
+  (reanimated/animate-shared-value-with-spring
+   value
+   to-value
+   {:mass      1
+    :damping   6
+    :stiffness 300}))
+
+(defn animate-timing
+  [value to-position duration]
   (reanimated/animate-shared-value-with-timing
-   value to-position timing-duration :linear))
+   value to-position duration :linear))
+
+(def shrink-duration 300)
+
+(defn shrink-animations
+  [{:keys [x-pos
+           track-container-padding
+           thumb-border-radius
+           track-border-radius]}
+   track-width
+   thumb-size]
+  ((animate-timing
+    track-container-padding
+    (-> track-width
+        (/ 2)
+        (- (/ thumb-size 2))
+        (- track-padding))
+    shrink-duration)
+   (animate-timing x-pos 0 shrink-duration)
+   (animate-timing track-border-radius (/ track-width 2) shrink-duration)
+   (animate-timing thumb-border-radius (/ thumb-size 2) shrink-duration)))
 
 (defn animate-complete
-  [value end-position]
-  (reanimated/with-sequence
-    (animate-slide value end-position)))
+  [{:keys [x-pos
+           track-scale] :as animations}
+   track-width
+   thumb-size]
+  (animate-timing x-pos track-width timing-duration)
+  (shrink-animations animations track-width thumb-size)
+  (animate-spring track-scale 1.5))
 
 

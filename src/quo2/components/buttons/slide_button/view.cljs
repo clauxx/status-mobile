@@ -3,16 +3,17 @@
    [quo2.components.icon :refer [icon]]
    [quo2.foundations.colors :as colors]
    [quo2.components.buttons.slide-button.consts
-    :refer [small-dimensions large-dimensions]]
+    :refer [small-dimensions large-dimensions timing-duration]]
    [quo2.components.buttons.slide-button.style
     :refer [thumb-style
             slide-colors
             track-style
             track-cover-style
+            track-container-style
             track-text-style
             track-cover-text-container-style]]
    [quo2.components.buttons.slide-button.animations
-    :refer [init-animations drag-gesture animate-slide animate-complete]]
+    :refer [init-animations clamp-track drag-gesture animate-timing animate-complete]]
    [react-native.gesture :as gesture]
    [react-native.core :as rn :refer [use-effect]]
    [quo.react :as react]
@@ -33,6 +34,8 @@
                       large-dimensions)
         track-width (react/state nil)
         thumb-state (react/state :rest)
+        thumb-icon (if (= :complete @thumb-state) track-icon :arrow-right)
+        disabled-gestures? (if (= :complete @thumb-state) true disabled?)
         reset-thumb-state #(reset! thumb-state :rest)
         on-track-layout (fn [evt]
                           (let [width (oops/oget evt "nativeEvent" "layout" "width")]
@@ -44,36 +47,38 @@
               (on-state-change @thumb-state)))
      [@thumb-state])
 
-    ; (use-effect
-    ;  (fn [] (println (str "thumb-state-changed: " @thumb-state))) [@thumb-state])
+    (use-effect
+     (fn [] (println (str "thumb-state-changed: " @thumb-state))) [@thumb-state])
 
     (use-effect
      (fn []
        (let [x (animations :x-pos)]
          (case @thumb-state
-           :complete (doall
-                      [(animate-complete x @track-width)
-                       (on-complete)])
+           :complete ((animate-complete animations @track-width (:thumb dimensions))
+                      ;;(reset! thumb-state :complete-shrink)
+                      ;;TODO remove comment
+                      (comment on-complete))
            :incomplete (doall
-                        [(animate-slide x 0)
+                        [(animate-timing x 0 timing-duration)
                          (reset-thumb-state)])
            nil)))
      [@thumb-state @track-width])
 
-    [gesture/gesture-detector {:gesture (drag-gesture animations disabled? track-width thumb-state (:thumb dimensions))}
-     [reanimated/view {:style (track-style (:track-height dimensions) disabled?)
-                       :on-layout (when-not
-                                   (some? @track-width)
-                                    on-track-layout)}
-      [reanimated/view {:style (track-cover-style animations track-width (:thumb dimensions))}
-       [rn/view {:style (track-cover-text-container-style  track-width)}
-        [icon track-icon {:color (:text slide-colors)
-                          :size  20}]
-        [rn/view {:width 4}]
-        [rn/text {:style track-text-style} track-text]]]
-      [reanimated/view {:style (thumb-style animations track-width (:thumb dimensions))}
-       [icon :arrow-right {:color colors/white
-                           :size  20}]]]]))
+    [gesture/gesture-detector {:gesture (drag-gesture animations disabled-gestures? track-width thumb-state (:thumb dimensions))}
+     [reanimated/view {:style (track-container-style animations (:height dimensions))}
+      [reanimated/view {:style (track-style animations disabled?)
+                        :on-layout (when-not
+                                    (some? @track-width)
+                                     on-track-layout)}
+       [reanimated/view {:style (track-cover-style animations track-width (:thumb dimensions))}
+        [rn/view {:style (track-cover-text-container-style  track-width)}
+         [icon track-icon {:color (:text slide-colors)
+                           :size  20}]
+         [rn/view {:width 4}]
+         [rn/text {:style track-text-style} track-text]]]
+       [reanimated/view {:style (thumb-style animations (:thumb dimensions) track-width)}
+        [icon thumb-icon {:color colors/white
+                          :size  20}]]]]]))
 
 ;; TODO 
 ;; - allow disabling the button through props

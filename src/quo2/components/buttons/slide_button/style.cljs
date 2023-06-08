@@ -22,27 +22,37 @@
    :right    0})
 
 (defn thumb-style
-  [{:keys [x-pos]} track-width size]
+  [{:keys [x-pos thumb-border-radius]} size track-width]
   (reanimated/apply-animations-to-style
-   {:transform [{:translate-x (clamp-track x-pos track-width size)}]}
+   {:transform [{:translate-x (clamp-track x-pos track-width size)}]
+    :border-radius thumb-border-radius}
    {:width  size
     :height size
-    :border-radius 12
     :align-items :center
     :justify-content :center
     :z-index 4
     :background-color (:thumb slide-colors)}))
 
+(defn track-container-style
+  [{:keys [track-container-padding]} height]
+  (reanimated/apply-animations-to-style
+   {:padding-horizontal track-container-padding}
+   {:align-self       :stretch
+    :align-items      :center
+    :justify-content  :center
+    :height height}))
+
 (defn track-style
-  [height disabled?]
-  {:align-self       :stretch
-   :align-items      :flex-start
-   :justify-content  :center
-   :padding          track-padding
-   :height           height
-   :border-radius    14
-   :opacity          (if disabled? 0.3 1)
-   :background-color (:track slide-colors)})
+  [{:keys [track-border-radius track-scale]} disabled?]
+  (reanimated/apply-animations-to-style
+   {:border-radius    track-border-radius
+    :transform [{:scale track-scale}]}
+   {:align-items      :flex-start
+    :justify-content  :center
+    :align-self       :stretch
+    :padding          track-padding
+    :opacity          (if disabled? 0.3 1)
+    :background-color (:track slide-colors)}))
 
 (defn track-cover-style [{:keys [x-pos]} track-width thumb-size]
   (reanimated/apply-animations-to-style
