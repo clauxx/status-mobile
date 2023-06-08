@@ -2,7 +2,6 @@
   (:require
    [quo2.components.buttons.slide-button.consts
     :refer [track-padding
-            thumb-size
             timing-duration
             threshold-frac]]
    [react-native.gesture :as gesture]
@@ -12,11 +11,11 @@
 
 (defn init-animations [] {:x-pos (reanimated/use-shared-value 0)})
 
-(defn calc-usable-track [track-width]
+(defn calc-usable-track [track-width thumb-size]
   [0 (- (or @track-width 200) (* track-padding 2) thumb-size)])
 
-(defn clamp-track [x-pos track-width]
-  (let [track-dim (calc-usable-track track-width)]
+(defn clamp-track [x-pos track-width thumb-size]
+  (let [track-dim (calc-usable-track track-width thumb-size)]
     (reanimated/interpolate
      x-pos
      track-dim
@@ -24,9 +23,9 @@
      {:extrapolateLeft  "clamp"
       :extrapolateRight "clamp"})))
 
-(defn interpolate-track-cover [x-pos track-width]
-  (let [track-dim (calc-usable-track track-width)
-        clamped (clamp-track x-pos track-width)]
+(defn interpolate-track-cover [x-pos track-width thumb-size]
+  (let [track-dim (calc-usable-track track-width thumb-size)
+        clamped (clamp-track x-pos track-width thumb-size)]
     (reanimated/interpolate
      clamped
      track-dim
@@ -36,7 +35,7 @@
      {:extrapolateLeft  "clamp"
       :extrapolateRight "clamp"})))
 
-(defn drag-gesture [{:keys [x-pos]} track-width thumb-state]
+(defn drag-gesture [{:keys [x-pos]} track-width thumb-state thumb-size]
   (let [offset (react/state 0)
         complete-threshold (* @track-width threshold-frac)]
 
@@ -46,7 +45,8 @@
                               (let [x-translation (oops/oget event "translationX")
                                     x (+ x-translation @offset)]
                                 (doall [(reanimated/set-shared-value x-pos x)
-                                        (cond (not= @thumb-state :dragging) (reset! thumb-state :dragging))
+                                        (when (not= @thumb-state :dragging)
+                                          (reset! thumb-state :dragging))
                                         (when (>= x (- track-width thumb-size))
                                           (reset! thumb-state :complete))]))))
 

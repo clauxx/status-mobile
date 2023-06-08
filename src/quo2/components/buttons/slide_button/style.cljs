@@ -2,8 +2,7 @@
   (:require
    [quo2.foundations.colors :as colors]
    [quo2.components.buttons.slide-button.consts
-    :refer [track-padding
-            thumb-size]]
+    :refer [track-padding]]
    [quo2.components.buttons.slide-button.animations
     :refer [clamp-track interpolate-track-cover]]
    [react-native.reanimated :as reanimated]
@@ -11,7 +10,7 @@
 
 (def slide-colors
   {:thumb (colors/custom-color-by-theme :blue 50 60)
-   :text (:thumb slide-colors)
+   :text (colors/custom-color-by-theme :blue 50 60)
    :text-transparent colors/white-opa-40
    :track (colors/custom-color :blue 50 10)})
 
@@ -23,26 +22,30 @@
    :right    0})
 
 (defn thumb-style
-  [{:keys [x-pos]} track-width]
+  [{:keys [x-pos]} track-width size]
   (reanimated/apply-animations-to-style
-   {:transform [{:translate-x (clamp-track x-pos track-width)}]}
-   {:width  thumb-size
-    :height thumb-size
-    :border-radius 14
+   {:transform [{:translate-x (clamp-track x-pos track-width size)}]}
+   {:width  size
+    :height size
+    :border-radius 12
+    :align-items :center
+    :justify-content :center
     :z-index 4
     :background-color (:thumb slide-colors)}))
 
-(def track-style {:align-self       :stretch
-                  :align-items      :flex-start
-                  :justify-content  :center
-                  :padding          track-padding
-                  :height           48
-                  :border-radius    12
-                  :background-color (:track slide-colors)})
+(defn track-style
+  [height]
+  {:align-self       :stretch
+   :align-items      :flex-start
+   :justify-content  :center
+   :padding          track-padding
+   :height           height
+   :border-radius    14
+   :background-color (:track slide-colors)})
 
-(defn track-cover-style [{:keys [x-pos]} track-width]
+(defn track-cover-style [{:keys [x-pos]} track-width thumb-size]
   (reanimated/apply-animations-to-style
-   {:left (interpolate-track-cover x-pos track-width)}
+   {:left (interpolate-track-cover x-pos track-width thumb-size)}
    (merge
     {:z-index 3
      :overflow :hidden} absolute-fill)))
@@ -54,6 +57,7 @@
                  :bottom 0
                  :align-items :center
                  :justify-content :center
+                 :flex-direction :row
                  :width @track-width})
 
 (def track-text-style
