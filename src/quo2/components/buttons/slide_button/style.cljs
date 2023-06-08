@@ -34,13 +34,14 @@
     :background-color (:thumb slide-colors)}))
 
 (defn track-style
-  [height]
+  [height disabled?]
   {:align-self       :stretch
    :align-items      :flex-start
    :justify-content  :center
    :padding          track-padding
    :height           height
    :border-radius    14
+   :opacity          (if disabled? 0.3 1)
    :background-color (:track slide-colors)})
 
 (defn track-cover-style [{:keys [x-pos]} track-width thumb-size]

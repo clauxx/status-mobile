@@ -19,7 +19,13 @@
    [oops.core :as oops]
    [react-native.reanimated :as reanimated]))
 
-(defn slider [{:keys [on-complete on-state-change track-text track-icon size]}]
+(defn slider
+  [{:keys [on-complete
+           on-state-change
+           track-text
+           track-icon
+           disabled?
+           size]}]
   (let [animations (init-animations)
         dimensions  (case size
                       :small small-dimensions
@@ -38,6 +44,9 @@
               (on-state-change @thumb-state)))
      [@thumb-state])
 
+    ; (use-effect
+    ;  (fn [] (println (str "thumb-state-changed: " @thumb-state))) [@thumb-state])
+
     (use-effect
      (fn []
        (let [x (animations :x-pos)]
@@ -51,8 +60,8 @@
            nil)))
      [@thumb-state @track-width])
 
-    [gesture/gesture-detector {:gesture (drag-gesture animations track-width thumb-state (:thumb dimensions))}
-     [reanimated/view {:style (track-style (:track-height dimensions))
+    [gesture/gesture-detector {:gesture (drag-gesture animations disabled? track-width thumb-state (:thumb dimensions))}
+     [reanimated/view {:style (track-style (:track-height dimensions) disabled?)
                        :on-layout (when-not
                                    (some? @track-width)
                                     on-track-layout)}
@@ -74,14 +83,15 @@
 ;; PROPS:
 ;; - disabled
 ;; - on-complete (DONE)
-;; - track-icon
-;; - track-text
-;; - size
+;; - track-icon (DONE)
+;; - track-text (DONE)
+;; - size (DONE)
 
-(defn slide-button [{:keys [on-complete on-state-change track-text track-icon size]} as props]
+(defn slide-button [{:keys [on-complete on-state-change track-text track-icon size disabled?]} as props]
   [:f> slider {:on-complete on-complete
                :on-state-change on-state-change
                :size size
+               :disabled? disabled?
                :track-text track-text
                :track-icon track-icon}])
 
