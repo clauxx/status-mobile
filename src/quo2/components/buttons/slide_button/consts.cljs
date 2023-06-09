@@ -1,7 +1,8 @@
 (ns quo2.components.buttons.slide-button.consts)
 
 (def track-padding 4)
-(def threshold-frac 0.65)
+(def threshold-release-frac 0.65)
+(def threshold-drag-frac 0.9)
 (def small-dimensions {:track-height 40
                        :thumb 32})
 (def large-dimensions {:track-height 48

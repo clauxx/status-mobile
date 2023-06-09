@@ -22,7 +22,9 @@
 (defn thumb
   [{:keys [x-pos thumb-border-radius]} size track-width]
   (reanimated/apply-animations-to-style
-   {:transform [{:translate-x (anim/clamp-track x-pos track-width size)}]
+   {:transform [{:translate-x (anim/clamp-track x-pos
+                                                track-width
+                                                size)}]
     :border-radius thumb-border-radius}
    {:width  size
     :height size
@@ -55,19 +57,19 @@
 (defn track-cover [{:keys [x-pos]} track-width thumb-size]
   (reanimated/apply-animations-to-style
    {:left (anim/interpolate-track-cover x-pos track-width thumb-size)}
-   (merge
-    {:z-index 3
-     :overflow :hidden} absolute-fill)))
+   (merge {:z-index 3
+           :overflow :hidden} absolute-fill)))
 
 (defn track-cover-text-container
-  [track-width] {:position :absolute
-                 :right 0
-                 :top 0
-                 :bottom 0
-                 :align-items :center
-                 :justify-content :center
-                 :flex-direction :row
-                 :width @track-width})
+  [track-width]
+  {:position :absolute
+   :right 0
+   :top 0
+   :bottom 0
+   :align-items :center
+   :justify-content :center
+   :flex-direction :row
+   :width @track-width})
 
 (def track-text
   (merge {:color (:text slide-colors)}

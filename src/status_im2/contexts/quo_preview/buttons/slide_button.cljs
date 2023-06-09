@@ -1,5 +1,5 @@
 (ns status-im2.contexts.quo-preview.buttons.slide-button
-  (:require [quo2.components.buttons.slide-button.view :refer [slide-button]]
+  (:require [quo2.core :as quo2]
             [quo2.foundations.colors :as colors]
             [react-native.core :as rn]
             [reagent.core :as reagent]
@@ -43,14 +43,14 @@
          {:padding-vertical 60
           :padding-horizontal 40
           :align-items      :center}
-         [slide-button {:track-text "We gotta slide"
-                        :track-icon :face-id
-                        :size :large
+         [quo2/slide-button {:track-text "We gotta slide"
+                             :track-icon :face-id
+                             :size :large
                         ;:disabled? true
-                        :on-complete (fn []
-                                       (js/alert "I don't wanna slide anymore"))
-                        :on-state-change (fn [s]
-                                           (reset! slide-state s))}]
+                             :on-complete (fn []
+                                            (js/alert "I don't wanna slide anymore"))
+                             :on-state-change (fn [s]
+                                                (reset! slide-state s))}]
          [rn/text {:style {:margin-top 20
                            :color (colors/theme-colors colors/neutral-90 colors/white)
                            :font-size 22}} (str @slide-state)]]]])))
