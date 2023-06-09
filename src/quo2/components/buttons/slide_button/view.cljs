@@ -24,10 +24,10 @@
                       :large consts/large-dimensions
                       consts/large-dimensions)
         track-width (react/state nil)
-        thumb-state (react/state :rest)
-        thumb-icon (if (= :complete @thumb-state) track-icon :arrow-right)
-        disabled-gestures? (if (= :complete @thumb-state) true disabled?)
-        reset-thumb-state #(reset! thumb-state :rest)
+        slide-state (react/state :rest)
+        thumb-icon (if (= :complete @slide-state) track-icon :arrow-right)
+        disabled-gestures? (if (= :complete @slide-state) true disabled?)
+        reset-thumb-state #(reset! slide-state :rest)
         on-track-layout (fn [evt]
                           (let [width (oops/oget evt "nativeEvent" "layout" "width")]
                             (reset! track-width width)))]
@@ -35,28 +35,25 @@
     (use-effect
      (fn [] (cond
               (not (nil? on-state-change))
-              (on-state-change @thumb-state)))
-     [@thumb-state])
-
-    (use-effect
-     (fn [] (println (str "thumb-state-changed: " @thumb-state))) [@thumb-state])
+              (on-state-change @slide-state)))
+     [@slide-state])
 
     (use-effect
      (fn []
        (let [final-padding  (anim/calc-final-padding @track-width (:thumb dimensions))]
-         (case @thumb-state
+         (case @slide-state
+           :incomplete ((anim/animate-reset-thumb animations)
+                        (reset-thumb-state))
            :complete ((anim/animate-shrink-track animations final-padding)
                       (anim/animate-center-thumb animations)
                       (anim/animate-round-track-thumb animations)
                       (anim/animate-scale-track animations)
                       ;;TODO remove comment
                       (comment on-complete))
-           :incomplete ((anim/animate-reset-thumb animations)
-                        (reset-thumb-state))
            nil)))
-     [@thumb-state @track-width])
+     [@slide-state @track-width])
 
-    [gesture/gesture-detector {:gesture (anim/drag-gesture animations disabled-gestures? track-width thumb-state (:thumb dimensions))}
+    [gesture/gesture-detector {:gesture (anim/drag-gesture animations disabled-gestures? track-width slide-state (:thumb dimensions))}
      [reanimated/view {:style (style/track-container animations (:height dimensions))}
       [reanimated/view {:style (style/track animations disabled?)
                         :on-layout (when-not

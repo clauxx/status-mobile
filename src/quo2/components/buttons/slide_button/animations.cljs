@@ -56,7 +56,7 @@
   [event
    offset
    x-pos
-   thumb-state
+   slide-state
    track-width
    thumb-size]
   (let [x-translation (oops/oget event "translationX")
@@ -64,10 +64,10 @@
         reached-end? (>= x (calc-usable-track track-width thumb-size))]
     (doall [(when (not reached-end?)
               (reanimated/set-shared-value x-pos x))
-            (doall [(when (= @thumb-state :rest)
-                      (reset! thumb-state :dragging))
+            (doall [(when (= @slide-state :rest)
+                      (reset! slide-state :dragging))
                     (when reached-end?
-                      (reset! thumb-state :complete))])])))
+                      (reset! slide-state :complete))])])))
 
 (defn- gesture-on-end
   [event
