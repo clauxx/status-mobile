@@ -33,8 +33,7 @@
   (let [state (reagent/atom {:count  "5"
                              :type   :jump-to
                              :labels {:jump-to           (i18n/label :t/jump-to)
-                                      :search-with-label (i18n/label :t/back)}})
-        slide-state (reagent/atom :rest)]
+                                      :search-with-label (i18n/label :t/back)}})]
     (fn []
       [rn/touchable-without-feedback {:on-press rn/dismiss-keyboard!}
        [rn/view {:padding-bottom 150}
@@ -48,12 +47,7 @@
                              :size :large
                         ;:disabled? true
                              :on-complete (fn []
-                                            (js/alert "I don't wanna slide anymore"))
-                             :on-state-change (fn [s]
-                                                (reset! slide-state s))}]
-         [rn/text {:style {:margin-top 20
-                           :color (colors/theme-colors colors/neutral-90 colors/white)
-                           :font-size 22}} (str @slide-state)]]]])))
+                                            (js/alert "I don't wanna slide anymore"))}]]]])))
 
 (defn preview-slide-button
   []
