@@ -1,10 +1,8 @@
 (ns quo2.components.buttons.slide-button.style
   (:require
    [quo2.foundations.colors :as colors]
-   [quo2.components.buttons.slide-button.consts
-    :refer [track-padding]]
-   [quo2.components.buttons.slide-button.animations
-    :refer [clamp-track interpolate-track-cover]]
+   [quo2.components.buttons.slide-button.consts :as consts]
+   [quo2.components.buttons.slide-button.animations :as anim]
    [react-native.reanimated :as reanimated]
    [quo2.foundations.typography :as typography]))
 
@@ -21,10 +19,10 @@
    :left     0
    :right    0})
 
-(defn thumb-style
+(defn thumb
   [{:keys [x-pos thumb-border-radius]} size track-width]
   (reanimated/apply-animations-to-style
-   {:transform [{:translate-x (clamp-track x-pos track-width size)}]
+   {:transform [{:translate-x (anim/clamp-track x-pos track-width size)}]
     :border-radius thumb-border-radius}
    {:width  size
     :height size
@@ -33,7 +31,7 @@
     :z-index 4
     :background-color (:thumb slide-colors)}))
 
-(defn track-container-style
+(defn track-container
   [{:keys [track-container-padding]} height]
   (reanimated/apply-animations-to-style
    {:padding-horizontal track-container-padding}
@@ -42,7 +40,7 @@
     :justify-content  :center
     :height height}))
 
-(defn track-style
+(defn track
   [{:keys [track-border-radius track-scale]} disabled?]
   (reanimated/apply-animations-to-style
    {:border-radius    track-border-radius
@@ -50,18 +48,18 @@
    {:align-items      :flex-start
     :justify-content  :center
     :align-self       :stretch
-    :padding          track-padding
+    :padding          consts/track-padding
     :opacity          (if disabled? 0.3 1)
     :background-color (:track slide-colors)}))
 
-(defn track-cover-style [{:keys [x-pos]} track-width thumb-size]
+(defn track-cover [{:keys [x-pos]} track-width thumb-size]
   (reanimated/apply-animations-to-style
-   {:left (interpolate-track-cover x-pos track-width thumb-size)}
+   {:left (anim/interpolate-track-cover x-pos track-width thumb-size)}
    (merge
     {:z-index 3
      :overflow :hidden} absolute-fill)))
 
-(defn track-cover-text-container-style
+(defn track-cover-text-container
   [track-width] {:position :absolute
                  :right 0
                  :top 0
@@ -71,7 +69,7 @@
                  :flex-direction :row
                  :width @track-width})
 
-(def track-text-style
+(def track-text
   (merge {:color (:text slide-colors)}
          typography/paragraph-1
          typography/font-medium))
