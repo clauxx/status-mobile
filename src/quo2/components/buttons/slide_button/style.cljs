@@ -21,7 +21,7 @@
 (defn thumb
   [{:keys [x-pos]} size track-width]
   (reanimated/apply-animations-to-style
-   {:border-radius (anim/interpolate-thumb-border-radius x-pos track-width size)}
+   {:border-radius (anim/interpolate-track x-pos track-width size :thumb-border-radius)}
    {:width  size
     :height size
     :align-items :center
@@ -30,45 +30,39 @@
 
 (defn thumb-drop
   [{:keys [x-pos]} size track-width]
-  (reanimated/apply-animations-to-style
-   {;:width (anim/interpolate-thumb-drop-width x-pos track-width size)
-    :transform [{:scale (anim/interpolate-thumb-drop-scale x-pos track-width size)}]
-    :z-index (anim/interpolate-thumb-drop-z-index x-pos track-width size)
-    :background-color (anim/interpolate-thumb-drop-color x-pos track-width size)
-    :left (anim/interpolate-thumb-drop-position x-pos track-width size)}
-   {:height size
-    :width size
-    :position :absolute
-    :align-items :center
-    :justify-content :center
-    :border-radius (/ size 2)
-   ; :background-color (:thumb consts/slide-colors)
-    }))
+  (let [interpolate-track (partial anim/interpolate-track x-pos track-width size)]
+    (reanimated/apply-animations-to-style
+     {:transform [{:scale (interpolate-track :thumb-drop-scale)}]
+      :z-index (interpolate-track :thumb-drop-z-index)
+      :background-color (interpolate-track :thumb-drop-color)
+      :left (interpolate-track :thumb-drop-position)}
+     {:height size
+      :width size
+      :position :absolute
+      :align-items :center
+      :justify-content :center
+      :border-radius (/ size 2)})))
 
 (defn track-container
-  [{:keys [track-container-padding]} height]
-  (reanimated/apply-animations-to-style
-   {:padding-horizontal track-container-padding}
-   {:align-self       :stretch
-    :align-items      :center
-    :justify-content  :center
-    :height height}))
+  [height]
+  {:align-self       :stretch
+   :align-items      :center
+   :justify-content  :center
+   :height height})
 
 (defn track
-  [{:keys [track-border-radius track-scale]} disabled?]
-  (reanimated/apply-animations-to-style
-   {:border-radius    track-border-radius
-    :transform [{:scale track-scale}]}
-   {:align-items      :flex-start
-    :justify-content  :center
-    :align-self       :stretch
-    :padding          consts/track-padding
-    :opacity          (if disabled? 0.3 1)
-    :background-color (:track consts/slide-colors)}))
+  [disabled?]
+  {:align-items      :flex-start
+   :justify-content  :center
+   :border-radius    14
+   :align-self       :stretch
+   :padding          consts/track-padding
+   :opacity          (if disabled? 0.3 1)
+   :background-color (:track consts/slide-colors)})
 
 (defn track-cover [{:keys [x-pos]} track-width thumb-size]
   (reanimated/apply-animations-to-style
-   {:left (anim/interpolate-track-cover x-pos track-width thumb-size)}
+   {:left (anim/interpolate-track x-pos track-width thumb-size :track-cover)}
    (merge {:overflow :hidden} absolute-fill)))
 
 (defn track-cover-text-container
@@ -80,7 +74,7 @@
    :align-items :center
    :justify-content :center
    :flex-direction :row
-   :width @track-width})
+   :width track-width})
 
 (def track-text
   (merge {:color (:text consts/slide-colors)

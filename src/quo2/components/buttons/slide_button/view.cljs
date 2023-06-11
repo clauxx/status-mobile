@@ -17,18 +17,24 @@
            track-icon
            disabled?
            size]}]
-  (let [dimensions  (case size
-                      :small consts/small-dimensions
-                      :large consts/large-dimensions
-                      consts/large-dimensions)
-        animations (anim/init-animations)
+  (let [animations (anim/init-animations)
         track-width (react/state nil)
-        slide-state (react/state :rest)
-        thumb-icon (if (= :complete @slide-state) track-icon :arrow-right)
-        disabled-gestures? (if (= :complete @slide-state) true disabled?)
         on-track-layout (fn [evt]
                           (let [width (oops/oget evt "nativeEvent" "layout" "width")]
-                            (reset! track-width width)))]
+                            (reset! track-width width)))
+        dimensions  (let [default-dimensions (case size
+                                               :small consts/small-dimensions
+                                               :large consts/large-dimensions
+                                               consts/large-dimensions)]
+                      (merge default-dimensions
+                             {:track-width (anim/calc-usable-track
+                                            track-width
+                                            (:thumb default-dimensions))}))
+        slide-state (react/state :rest)
+        ;; TODO figure if still need this
+        thumb-icon (if (= :complete @slide-state) track-icon :arrow-right)
+        ;; TODO move this to the `drag-gesture`
+        disabled-gestures? (if (= :complete @slide-state) true disabled?)]
 
     (rn/use-effect (fn []
                      (case @slide-state
@@ -38,17 +44,16 @@
 
     [gesture/gesture-detector {:gesture (anim/drag-gesture animations
                                                            disabled-gestures?
-                                                           track-width
-                                                           slide-state
-                                                           (:thumb dimensions))}
-     [reanimated/view {:style (style/track-container animations
-                                                     (:height dimensions))}
-      [reanimated/view {:style (style/track animations disabled?)
-                        :on-layout (when-not (some? @track-width) on-track-layout)}
+                                                           (:track-width dimensions)
+                                                           slide-state)}
+     [reanimated/view {:style (style/track-container (:height dimensions))}
+      [reanimated/view {:style (style/track disabled?)
+                        :on-layout (when-not (some? @track-width)
+                                     on-track-layout)}
        [reanimated/view {:style (style/track-cover animations
-                                                   track-width
+                                                   (:track-width dimensions)
                                                    (:thumb dimensions))}
-        [rn/view {:style (style/track-cover-text-container track-width)}
+        [rn/view {:style (style/track-cover-text-container @track-width)}
          [icon/icon track-icon {:color (:text consts/slide-colors)
                                 :size  20}]
          [rn/view {:width 4}]
@@ -56,20 +61,18 @@
        [reanimated/view {:style (style/thumb-container animations)}
         [reanimated/view {:style (style/thumb-drop animations
                                                    (:thumb dimensions)
-                                                   track-width)}
+                                                   (:track-width dimensions))}
          [icon/icon track-icon {:color colors/white
                                 :size  20}]]
         [reanimated/view {:style (style/thumb animations
                                               (:thumb dimensions)
-                                              track-width)}
+                                              (:track-width dimensions))}
          [icon/icon thumb-icon {:color colors/white
                                 :size  20}]]]]]]))
 
 (defn slide-button
   "Options
   - `on-complete`     Callback called when the sliding is complete
-  - `on-state-change` Callback called on slide state change 
-                      _args_: [state `:rest`/`:dragging`/`:incomplete`/`:complete`]
   - `disabled?`       Boolean that disables the button
                       (_and gestures_)
   - `size`            `:small`/`:large`

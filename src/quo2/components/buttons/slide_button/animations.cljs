@@ -2,13 +2,11 @@
   (:require
    [quo2.components.buttons.slide-button.consts :as consts]
    [react-native.gesture :as gesture]
-   [quo.react :as react]
    [oops.core :as oops]
-   [utils.worklets.core :as w]
    [react-native.reanimated :as reanimated]))
 
 ;; Utils 
-(defn clamp-value [value min-value max-value]
+(defn- clamp-value [value min-value max-value]
   (cond
     (< value min-value) min-value
     (> value max-value) max-value
@@ -23,129 +21,84 @@
 (def ^:private extrapolation {:extrapolateLeft  "clamp"
                               :extrapolateRight "clamp"})
 
-(defn calc-final-padding
-  "Calculate the padding animation applied
-  to the track to surround the thumb."
-  [track-width thumb-size]
-  (-> track-width
-      (/ 2)
-      (- (/ thumb-size 2))
-      (- consts/track-padding)))
+(defn- track-interpolation-inputs
+  [in-vectors track-width]
+  (map #(* track-width %) in-vectors))
 
 ;; Interpolations
-(defn clamp-track
-  "Clamps the thumb position to the usable portion
-   of the track"
-  [x-pos track-width thumb-size]
-  (let [track-dim [0 (calc-usable-track track-width thumb-size)]]
-    (reanimated/interpolate x-pos
-                            track-dim
-                            track-dim
-                            extrapolation)))
-
-(defn interpolate-track-cover
-  "Interpolates the start edge of the track text container
-  based on the thumb position, which should hide the text
-  behind the thumb."
-  [x-pos track-width thumb-size]
-  (let [usable-track (calc-usable-track track-width
-                                        thumb-size)
-        output-start-pos (/ thumb-size 2)
-        clamped (clamp-track x-pos
-                             track-width
-                             thumb-size)]
-    (reanimated/interpolate clamped
-                            [0 usable-track]
-                            [output-start-pos usable-track]
-                            extrapolation)))
-
-(defn drop-interpolation-input
+(defn- track-cover-interpolation
   [track-width thumb-size]
-  (let [track (calc-usable-track track-width thumb-size)
-        in-start 0
-        in-mid (* track 0.5)
-        in-mid-end (* track 0.75)
-        in-end track]
-    [in-start in-mid in-mid-end in-end]))
+  {:in [0 1]
+   :out [(/ thumb-size 2) track-width]})
 
-(defn interpolate-x
-  [x-pos track-width thumb-size {:keys [out-start  out-mid out-mid-end out-end]}]
-  (let [input (drop-interpolation-input track-width thumb-size)]
-    (reanimated/interpolate x-pos
-                            input
-                            [out-start out-mid out-mid-end out-end]
-                            extrapolation)))
+(defn- thumb-border-radius-interpolation
+  [thumb-size]
+  {:in [0 0.75 1]
+   :out [consts/thumb-border-radius
+         consts/thumb-border-radius
+         (/ thumb-size 2)]})
 
-(defn interpolate-thumb-border-radius
-  [x-pos track-width thumb-size]
-  (interpolate-x x-pos
-                 track-width
-                 thumb-size
-                 {:out-start consts/thumb-border-radius
-                  :out-mid consts/thumb-border-radius
-                  :out-mid-end consts/thumb-border-radius
-                  :out-end (/ thumb-size 2)}))
+(defn- thumb-drop-position-interpolation
+  [thumb-size]
+  (let [drop-lag #(- (* thumb-size %))]
+    {:in [0 0.5 0.75 1]
+     :out [0 (drop-lag 0.4) (drop-lag 0.9) 0]}))
 
-(defn interpolate-thumb-drop-position
-  [x-pos track-width thumb-size]
-  (interpolate-x x-pos
-                 track-width
-                 thumb-size
-                 {:out-start 0
-                  :out-mid (- (* thumb-size 0.4))
-                  :out-mid-end (- (* thumb-size 0.8))
-                  :out-end 0}))
+(def ^:private thumb-drop-scale-interpolation
+  {:in [0 0.5 0.75 1]
+   :out [0 0.6 0.7 1]})
 
-(defn interpolate-thumb-drop-scale
-  [x-pos track-width thumb-size]
-  (interpolate-x x-pos
-                 track-width
-                 thumb-size
-                 {:out-start 0
-                  :out-mid 0.6
-                  :out-mid-end 0.7
-                  :out-end 1}))
+(def ^:private thumb-drop-z-index-interpolation
+  {:in [0 0.75 1]
+   :out [0 1 1]})
 
-(defn interpolate-thumb-drop-z-index
-  [x-pos track-width thumb-size]
-  (interpolate-x x-pos
-                 track-width
-                 thumb-size
-                 {:out-start 0
-                  :out-mid-start 0
-                  :out-mid 0
-                  :out-mid-end 1
-                  :out-end 1}))
-
-(defn interpolate-x-color
-  [x-pos track-width thumb-size {:keys [out-start  out-mid out-mid-end out-end]}]
-  (let [input (drop-interpolation-input track-width thumb-size)]
-    (reanimated/interpolate-color x-pos
-                                  input
-                                  [out-start out-mid out-mid-end out-end])))
-
-(defn interpolate-thumb-drop-color
-  [x-pos track-width thumb-size]
+(def ^:private thumb-drop-color
   (let [main-col (:thumb consts/slide-colors)
-        mid-dark-col "#0a2bdb"
-        dark-col "#0820a4"]
-    (interpolate-x-color x-pos
-                         track-width
-                         thumb-size
-                         {:out-start dark-col
-                          :out-mid-start mid-dark-col
-                          :out-mid mid-dark-col
-                          :out-mid-end mid-dark-col
-                          :out-end main-col})))
+        dark-col "#0a2bdb"]
+    {:in [0 0.75 1]
+     :out [dark-col dark-col main-col]}))
+
+(defn interpolate-track
+  "Interpolate the position in the track
+  `x-pos`          Track animated value
+  `track-width`    Width of the track
+  `thumb-size`     Size of the thumb
+  `interpolation` `:thumb-border-radius`/`:thumb-drop-position`/`:thumb-drop-scale`/`:thumb-drop-z-index`/`:thumb-drop-color`/`:track-cover-interpolation`"
+  ([x-pos track-width thumb-size interpolation]
+   (let [interpolations {:track-cover (track-cover-interpolation track-width thumb-size)
+                         :thumb-border-radius (thumb-border-radius-interpolation thumb-size)
+                         :thumb-drop-position (thumb-drop-position-interpolation thumb-size)
+                         :thumb-drop-scale    thumb-drop-scale-interpolation
+                         :thumb-drop-z-index  thumb-drop-z-index-interpolation}
+         color-interpolations {:thumb-drop-color thumb-drop-color}
+         color-interpolation? (contains? color-interpolations interpolation)
+         interpolation-values (interpolation (if color-interpolation?
+                                               color-interpolations
+                                               interpolations))
+         output (:out interpolation-values)
+         input (-> (:in interpolation-values)
+                   (track-interpolation-inputs track-width))]
+     (if (nil? interpolation-values)
+       x-pos
+       (if color-interpolation?
+         (reanimated/interpolate-color x-pos
+                                       input
+                                       output)
+         (reanimated/interpolate x-pos
+                                 input
+                                 output
+                                 extrapolation))))))
 
 ;; Animation helpers
+
+;; TODO remove
 (defn- animate-spring
   [value to-value]
   (reanimated/animate-shared-value-with-spring value
                                                to-value
                                                {:mass      1
-                                                :damping   6
-                                                :stiffness 300}))
+                                                :damping   4
+                                                :stiffness 100}))
 
 (defn- animate-timing
   [value to-position duration]
@@ -154,6 +107,7 @@
                                                duration
                                                :linear))
 
+;; TODO remove
 (defn- animate-sequence [anim & seq-animations]
   (reanimated/set-shared-value anim
                                (apply reanimated/with-sequence
@@ -162,41 +116,38 @@
 ;; Animations
 (defn init-animations []
   {:x-pos (reanimated/use-shared-value 0)
-   :slide-state (reanimated/use-shared-value :rest)
-   ;TODO remove
-   :thumb-border-radius (reanimated/use-shared-value 12)
    :thumb-drop-width (reanimated/use-shared-value 0)
-   :track-scale (reanimated/use-shared-value 1)
-   :track-border-radius (reanimated/use-shared-value 14)
    :track-container-padding (reanimated/use-shared-value 0)})
 
 (defn complete-animation
-  [{:keys [track-border-radius] :as animations} slide-state]
+  [{:keys []} slide-state]
   (reanimated/run-on-js
    (js/setTimeout (fn [] (reset! slide-state :complete)) 300)))
+
+(defn reset-track-position
+  [{:keys [x-pos]}]
+  (animate-timing x-pos 0 200))
 
 ;; Gestures
 (defn drag-gesture
   [animations
    disabled?
    track-width
-   slide-state
-   thumb-size]
-  (let [threshold (calc-usable-track track-width thumb-size)
-        x-pos (:x-pos animations)]
+   slide-state]
+  (let [x-pos (:x-pos animations)]
     (-> (gesture/gesture-pan)
         (gesture/enabled (not disabled?))
         (gesture/min-distance 0)
         (gesture/on-update (fn [event]
                              (let [x-translation (oops/oget event "translationX")
-                                   clamped-x (clamp-value x-translation 0 threshold)
-                                   reached-end? (>= clamped-x threshold)]
+                                   clamped-x (clamp-value x-translation 0 track-width)
+                                   reached-end? (>= clamped-x track-width)]
                                (reanimated/set-shared-value x-pos clamped-x)
                                (cond (and reached-end? (not= @slide-state :complete))
                                      (complete-animation animations slide-state)))))
         (gesture/on-end (fn [event]
                           (let [x-translation (oops/oget event "translationX")
-                                reached-end? (>= x-translation threshold)]
+                                reached-end? (>= x-translation track-width)]
                             (when (not reached-end?)
-                              (animate-timing x-pos 0 200))))))))
+                              (reset-track-position animations))))))))
 
