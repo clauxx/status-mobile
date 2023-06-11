@@ -50,6 +50,12 @@
       [reanimated/view {:style (style/track disabled?)
                         :on-layout (when-not (some? @track-width)
                                      on-track-layout)}
+       [reanimated/view {:style (style/track-success animations
+                                                     (:track-width dimensions)
+                                                     (:thumb dimensions))}
+
+        [icon/icon :check {:color (:text consts/slide-colors)
+                           :size  20}]]
        [reanimated/view {:style (style/track-cover animations
                                                    (:track-width dimensions)
                                                    (:thumb dimensions))}
@@ -58,7 +64,7 @@
                                 :size  20}]
          [rn/view {:width 4}]
          [rn/text {:style style/track-text} track-text]]]
-       [reanimated/view {:style (style/thumb-container animations)}
+       [reanimated/view {:style (style/thumb-container animations (:track-width dimensions) (:thumb dimensions))}
         [reanimated/view {:style (style/thumb-drop animations
                                                    (:thumb dimensions)
                                                    (:track-width dimensions))}
@@ -67,8 +73,12 @@
         [reanimated/view {:style (style/thumb animations
                                               (:thumb dimensions)
                                               (:track-width dimensions))}
-         [icon/icon thumb-icon {:color colors/white
-                                :size  20}]]]]]]))
+
+         [reanimated/view {:style (style/thumb-icon-container animations
+                                                              (:thumb dimensions)
+                                                              (:track-width dimensions))}
+          [icon/icon thumb-icon {:color colors/white
+                                 :size  20}]]]]]]]))
 
 (defn slide-button
   "Options

@@ -13,20 +13,28 @@
    :right    0})
 
 (defn thumb-container
-  [{:keys [x-pos]}]
+  [{:keys [x-pos]} track-width size]
   (reanimated/apply-animations-to-style
-   {:transform [{:translate-x x-pos}]}
+   {:transform [{:translate-x (anim/interpolate-track x-pos track-width size :track-clamp)}]}
    {}))
 
 (defn thumb
   [{:keys [x-pos]} size track-width]
   (reanimated/apply-animations-to-style
-   {:border-radius (anim/interpolate-track x-pos track-width size :thumb-border-radius)}
+   {;:border-radius (anim/interpolate-track x-pos track-width size :thumb-border-radius)
+    }
    {:width  size
     :height size
-    :align-items :center
-    :justify-content :center
+    :border-radius 12
     :background-color (:thumb consts/slide-colors)}))
+
+(defn thumb-icon-container
+  [{:keys [x-pos]} size track-width]
+  (reanimated/apply-animations-to-style
+   {:opacity (anim/interpolate-track x-pos track-width size :thumb-icon-opacity)}
+   {:flex 1
+    :align-items :center
+    :justify-content :center}))
 
 (defn thumb-drop
   [{:keys [x-pos]} size track-width]
@@ -35,13 +43,17 @@
      {:transform [{:scale (interpolate-track :thumb-drop-scale)}]
       :z-index (interpolate-track :thumb-drop-z-index)
       :background-color (interpolate-track :thumb-drop-color)
+      :width (interpolate-track :thumb-drop-width)
+      :opacity (interpolate-track :thumb-drop-opacity)
+      :padding-right (interpolate-track :thumb-drop-padding)
       :left (interpolate-track :thumb-drop-position)}
      {:height size
-      :width size
+      ;:width size
       :position :absolute
       :align-items :center
       :justify-content :center
-      :border-radius (/ size 2)})))
+      ;:border-radius (/ size 2)
+      :border-radius 12})))
 
 (defn track-container
   [height]
@@ -59,6 +71,14 @@
    :padding          consts/track-padding
    :opacity          (if disabled? 0.3 1)
    :background-color (:track consts/slide-colors)})
+
+(defn track-success
+  [{:keys [x-pos]} track-width thumb-size]
+  (reanimated/apply-animations-to-style
+   {:opacity (anim/interpolate-track x-pos track-width thumb-size :track-success-opacity)}
+   (merge absolute-fill {:transform [{:scale 1.3}]
+                         :align-items :center
+                         :justify-content :center})))
 
 (defn track-cover [{:keys [x-pos]} track-width thumb-size]
   (reanimated/apply-animations-to-style
