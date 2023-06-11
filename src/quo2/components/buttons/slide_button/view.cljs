@@ -30,11 +30,7 @@
                              {:track-width (anim/calc-usable-track
                                             track-width
                                             (:thumb default-dimensions))}))
-        slide-state (react/state :rest)
-        ;; TODO figure if still need this
-        thumb-icon (if (= :complete @slide-state) track-icon :arrow-right)
-        ;; TODO move this to the `drag-gesture`
-        disabled-gestures? (if (= :complete @slide-state) true disabled?)]
+        slide-state (react/state :rest)]
 
     (rn/use-effect (fn []
                      (case @slide-state
@@ -43,7 +39,7 @@
                    [@slide-state])
 
     [gesture/gesture-detector {:gesture (anim/drag-gesture animations
-                                                           disabled-gestures?
+                                                           disabled?
                                                            (:track-width dimensions)
                                                            slide-state)}
      [reanimated/view {:style (style/track-container (:height dimensions))}
@@ -77,8 +73,8 @@
          [reanimated/view {:style (style/thumb-icon-container animations
                                                               (:thumb dimensions)
                                                               (:track-width dimensions))}
-          [icon/icon thumb-icon {:color colors/white
-                                 :size  20}]]]]]]]))
+          [icon/icon :arrow-right {:color colors/white
+                                   :size  20}]]]]]]]))
 
 (defn slide-button
   "Options

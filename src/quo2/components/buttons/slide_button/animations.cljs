@@ -2,6 +2,7 @@
   (:require
    [quo2.components.buttons.slide-button.consts :as consts]
    [react-native.gesture :as gesture]
+   [quo.react :as react]
    [oops.core :as oops]
    [react-native.reanimated :as reanimated]))
 
@@ -78,8 +79,8 @@
    :out [0 0.7 0.85 1 1]})
 
 (def ^:private thumb-drop-scale-interpolation
-  {:in [0 0.5 0.85 1]
-   :out [0 0.6 1 1]})
+  {:in [0 0.2 0.5 0.85 1]
+   :out [0 0.3 0.6 1 1]})
 
 (def ^:private thumb-drop-z-index-interpolation
   {:in [0 0.75 1]
@@ -129,8 +130,7 @@
                                  output
                                  extrapolation))))))
 
-;; Animation helpers
-
+;; Animations
 (defn- animate-spring
   [value to-value]
   (reanimated/animate-shared-value-with-spring value
@@ -139,20 +139,6 @@
                                                 :damping   30
                                                 :stiffness 400}))
 
-(defn- animate-timing
-  [value to-position duration]
-  (reanimated/animate-shared-value-with-timing value
-                                               to-position
-                                               duration
-                                               :linear))
-
-;; TODO remove
-(defn- animate-sequence [anim & seq-animations]
-  (reanimated/set-shared-value anim
-                               (apply reanimated/with-sequence
-                                      seq-animations)))
-
-;; Animations
 (defn init-animations []
   {:x-pos (reanimated/use-shared-value 0)
    :thumb-drop-width (reanimated/use-shared-value 0)
@@ -161,7 +147,7 @@
 (defn complete-animation
   [{:keys []} slide-state]
   (reanimated/run-on-js
-   (js/setTimeout (fn [] (reset! slide-state :complete)) 300)))
+   (js/setTimeout (fn [] (reset! slide-state :complete)) 100)))
 
 (defn reset-track-position
   [{:keys [x-pos]}]
@@ -173,17 +159,19 @@
    disabled?
    track-width
    slide-state]
-  (let [x-pos (:x-pos animations)]
+  (let [x-pos (:x-pos animations)
+        gestures-disabled? (react/state disabled?)]
     (-> (gesture/gesture-pan)
-        (gesture/enabled (not disabled?))
+        (gesture/enabled (not @gestures-disabled?))
         (gesture/min-distance 0)
         (gesture/on-update (fn [event]
                              (let [x-translation (oops/oget event "translationX")
                                    clamped-x (clamp-value x-translation 0 track-width)
                                    reached-end? (>= clamped-x track-width)]
                                (reanimated/set-shared-value x-pos clamped-x)
-                               (cond (and reached-end? (not= @slide-state :complete))
-                                     (complete-animation animations slide-state)))))
+                               (when (and reached-end? (not= @slide-state :complete))
+                                 (reset! gestures-disabled? true)
+                                 (complete-animation animations slide-state)))))
         (gesture/on-end (fn [event]
                           (let [x-translation (oops/oget event "translationX")
                                 reached-end? (>= x-translation track-width)]

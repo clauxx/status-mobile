@@ -48,11 +48,9 @@
       :padding-right (interpolate-track :thumb-drop-padding)
       :left (interpolate-track :thumb-drop-position)}
      {:height size
-      ;:width size
       :position :absolute
       :align-items :center
       :justify-content :center
-      ;:border-radius (/ size 2)
       :border-radius 12})))
 
 (defn track-container
