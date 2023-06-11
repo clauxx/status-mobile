@@ -5,8 +5,6 @@
    [quo2.components.buttons.slide-button.consts :as consts]
    [quo2.components.buttons.slide-button.style :as style]
    [quo2.components.buttons.slide-button.animations :as anim]
-   [reagent.core :as r]
-   [utils.worklets.core :as w]
    [react-native.gesture :as gesture]
    [react-native.core :as rn]
    [quo.react :as react]
@@ -51,7 +49,7 @@
                                                    track-width
                                                    (:thumb dimensions))}
         [rn/view {:style (style/track-cover-text-container track-width)}
-         [icon/icon track-icon {:color (:text style/slide-colors)
+         [icon/icon track-icon {:color (:text consts/slide-colors)
                                 :size  20}]
          [rn/view {:width 4}]
          [rn/text {:style style/track-text} track-text]]]

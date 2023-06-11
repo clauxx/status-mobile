@@ -117,6 +117,27 @@
                   :out-mid-end 1
                   :out-end 1}))
 
+(defn interpolate-x-color
+  [x-pos track-width thumb-size {:keys [out-start  out-mid out-mid-end out-end]}]
+  (let [input (drop-interpolation-input track-width thumb-size)]
+    (reanimated/interpolate-color x-pos
+                                  input
+                                  [out-start out-mid out-mid-end out-end])))
+
+(defn interpolate-thumb-drop-color
+  [x-pos track-width thumb-size]
+  (let [main-col (:thumb consts/slide-colors)
+        mid-dark-col "#0a2bdb"
+        dark-col "#0820a4"]
+    (interpolate-x-color x-pos
+                         track-width
+                         thumb-size
+                         {:out-start dark-col
+                          :out-mid-start mid-dark-col
+                          :out-mid mid-dark-col
+                          :out-mid-end mid-dark-col
+                          :out-end main-col})))
+
 ;; Animation helpers
 (defn- animate-spring
   [value to-value]
