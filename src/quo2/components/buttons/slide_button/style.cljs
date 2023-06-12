@@ -22,31 +22,57 @@
   {:width  size
    :height size
    :border-radius 12
-   :background-color (:thumb consts/slide-colors)})
+   :z-index 1})
 
 (defn thumb-icon-container
-  [interpolate-track]
+  [interpolate-track thumb-size]
   (reanimated/apply-animations-to-style
-   {:opacity (interpolate-track :thumb-icon-opacity)}
-   {:flex 1
+   {:transform [{:translate-x (interpolate-track :thumb-icon-position)}]}
+   {:width thumb-size
+    :height thumb-size
+    :align-items :center
+    :justify-content :center}))
+
+(defn success-bg
+  [interpolate-track thumb-size]
+  (reanimated/apply-animations-to-style
+   {:width (interpolate-track :success-bg-width)}
+   {:background-color (consts/slide-colors :thumb)
+    :border-radius 12
+    :position :absolute
+    :right 0
+    :top 0
+    :height thumb-size
+    :align-items :center
+    :overflow :hidden
+    :justify-content :center}))
+
+(defn check
+  [interpolate-track thumb-size]
+  (reanimated/apply-animations-to-style
+   {:transform [{:translate-x (interpolate-track :check-position)}]}
+   {:width thumb-size
+    :height thumb-size
+    :position :absolute
+    :top 0
+    :left 0
+    :z-index 2
     :align-items :center
     :justify-content :center}))
 
 (defn thumb-drop
   [interpolate-track size]
   (reanimated/apply-animations-to-style
-   {:transform [{:scale (interpolate-track :thumb-drop-scale)}]
-    :z-index (interpolate-track :thumb-drop-z-index)
-    :background-color (interpolate-track :thumb-drop-color)
-    :width (interpolate-track :thumb-drop-width)
-    :opacity (interpolate-track :thumb-drop-opacity)
-    :padding-right (interpolate-track :thumb-drop-padding)
-    :left (interpolate-track :thumb-drop-position)}
+   {:transform [{:translate-x (interpolate-track :thumb-drop-position)}]}
    {:height size
+    :width size
     :position :absolute
     :align-items :center
-    :justify-content :center
-    :border-radius 12}))
+    :left 0
+    :top 0
+    :z-index 2
+    :flex-direction :row
+    :justify-content :space-around}))
 
 (defn track-container
   [height]
@@ -64,14 +90,6 @@
    :padding          consts/track-padding
    :opacity          (if disabled? 0.3 1)
    :background-color (:track consts/slide-colors)})
-
-(defn track-success
-  [interpolate-track]
-  (reanimated/apply-animations-to-style
-   {:opacity (interpolate-track :track-success-opacity)}
-   (merge absolute-fill {:transform [{:scale 1.3}]
-                         :align-items :center
-                         :justify-content :center})))
 
 (defn track-cover
   [interpolate-track]

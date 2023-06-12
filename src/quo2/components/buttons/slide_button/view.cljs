@@ -51,9 +51,6 @@
           [reanimated/view {:style (style/track disabled?)
                             :on-layout (when-not (some? @track-width)
                                          on-track-layout)}
-           [reanimated/view {:style (style/track-success interpolate-track)}
-            [icon/icon :check {:color (:text consts/slide-colors)
-                               :size  20}]]
            [reanimated/view {:style (style/track-cover interpolate-track)}
             [rn/view {:style (style/track-cover-text-container @track-width)}
              [icon/icon track-icon {:color (:text consts/slide-colors)
@@ -61,14 +58,19 @@
              [rn/view {:width 4}]
              [rn/text {:style style/track-text} track-text]]]
            [reanimated/view {:style (style/thumb-container interpolate-track)}
-            [reanimated/view {:style (style/thumb-drop interpolate-track
-                                                       (:thumb dimensions))}
-             [icon/icon track-icon {:color colors/white
-                                    :size  20}]]
-            [reanimated/view {:style (style/thumb (:thumb dimensions))}
-             [reanimated/view {:style (style/thumb-icon-container interpolate-track)}
+            [reanimated/view {:style (style/thumb (:thumb dimensions))}]
+
+            [reanimated/view {:style (style/success-bg interpolate-track (:thumb dimensions))}
+             [reanimated/view {:style (style/thumb-icon-container interpolate-track (:thumb dimensions))}
               [icon/icon :arrow-right {:color colors/white
-                                       :size  20}]]]]]]]))))
+                                       :size  20}]]
+             [reanimated/view {:style (style/check interpolate-track (:thumb dimensions))}
+              [icon/icon :check {:color colors/white
+                                 :size  20}]]
+             [reanimated/view {:style (style/thumb-drop interpolate-track
+                                                        (:thumb dimensions))}
+              [icon/icon track-icon {:color colors/white
+                                     :size  20}]]]]]]]))))
 
 (defn slide-button
   "Options

@@ -12,6 +12,7 @@
                        :thumb 40})
 (def slide-colors
   {:thumb (colors/custom-color-by-theme :blue 50 60)
+   :success (colors/custom-color-by-theme :blue 50 60 60 60)
    :text (colors/custom-color-by-theme :blue 50 60)
    :text-transparent colors/white-opa-40
    :track (colors/custom-color :blue 50 10)})
