@@ -1,7 +1,6 @@
 (ns quo2.components.buttons.slide-button.style
   (:require
    [quo2.components.buttons.slide-button.consts :as consts]
-   [quo2.components.buttons.slide-button.animations :as anim]
    [react-native.reanimated :as reanimated]
    [quo2.foundations.typography :as typography]))
 
@@ -13,9 +12,9 @@
    :right    0})
 
 (defn thumb-container
-  [{:keys [x-pos]} track-width size]
+  [interpolate-track]
   (reanimated/apply-animations-to-style
-   {:transform [{:translate-x (anim/interpolate-track x-pos track-width size :track-clamp)}]}
+   {:transform [{:translate-x (interpolate-track :track-clamp)}]}
    {}))
 
 (defn thumb
@@ -26,29 +25,28 @@
    :background-color (:thumb consts/slide-colors)})
 
 (defn thumb-icon-container
-  [{:keys [x-pos]} size track-width]
+  [interpolate-track]
   (reanimated/apply-animations-to-style
-   {:opacity (anim/interpolate-track x-pos track-width size :thumb-icon-opacity)}
+   {:opacity (interpolate-track :thumb-icon-opacity)}
    {:flex 1
     :align-items :center
     :justify-content :center}))
 
 (defn thumb-drop
-  [{:keys [x-pos]} size track-width]
-  (let [interpolate-track (partial anim/interpolate-track x-pos track-width size)]
-    (reanimated/apply-animations-to-style
-     {:transform [{:scale (interpolate-track :thumb-drop-scale)}]
-      :z-index (interpolate-track :thumb-drop-z-index)
-      :background-color (interpolate-track :thumb-drop-color)
-      :width (interpolate-track :thumb-drop-width)
-      :opacity (interpolate-track :thumb-drop-opacity)
-      :padding-right (interpolate-track :thumb-drop-padding)
-      :left (interpolate-track :thumb-drop-position)}
-     {:height size
-      :position :absolute
-      :align-items :center
-      :justify-content :center
-      :border-radius 12})))
+  [interpolate-track size]
+  (reanimated/apply-animations-to-style
+   {:transform [{:scale (interpolate-track :thumb-drop-scale)}]
+    :z-index (interpolate-track :thumb-drop-z-index)
+    :background-color (interpolate-track :thumb-drop-color)
+    :width (interpolate-track :thumb-drop-width)
+    :opacity (interpolate-track :thumb-drop-opacity)
+    :padding-right (interpolate-track :thumb-drop-padding)
+    :left (interpolate-track :thumb-drop-position)}
+   {:height size
+    :position :absolute
+    :align-items :center
+    :justify-content :center
+    :border-radius 12}))
 
 (defn track-container
   [height]
@@ -68,16 +66,17 @@
    :background-color (:track consts/slide-colors)})
 
 (defn track-success
-  [{:keys [x-pos]} track-width thumb-size]
+  [interpolate-track]
   (reanimated/apply-animations-to-style
-   {:opacity (anim/interpolate-track x-pos track-width thumb-size :track-success-opacity)}
+   {:opacity (interpolate-track :track-success-opacity)}
    (merge absolute-fill {:transform [{:scale 1.3}]
                          :align-items :center
                          :justify-content :center})))
 
-(defn track-cover [{:keys [x-pos]} track-width thumb-size]
+(defn track-cover
+  [interpolate-track]
   (reanimated/apply-animations-to-style
-   {:left (anim/interpolate-track x-pos track-width thumb-size :track-cover)}
+   {:left (interpolate-track :track-cover)}
    (merge {:overflow :hidden} absolute-fill)))
 
 (defn track-cover-text-container

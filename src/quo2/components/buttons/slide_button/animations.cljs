@@ -138,41 +138,34 @@
                                                 :damping   30
                                                 :stiffness 400}))
 
-(defn init-animations []
-  {:x-pos (reanimated/use-shared-value 0)
-   :thumb-drop-width (reanimated/use-shared-value 0)
-   :track-container-padding (reanimated/use-shared-value 0)})
-
 (defn complete-animation
-  [{:keys []} slide-state]
-  (reanimated/run-on-js
-   (js/setTimeout (fn [] (reset! slide-state :complete)) 100)))
+  [sliding-complete?]
+  (js/setTimeout (fn [] (reset! sliding-complete? true)) 100))
 
 (defn reset-track-position
-  [{:keys [x-pos]}]
+  [x-pos]
   (animate-spring x-pos 0))
 
 ;; Gestures
 (defn drag-gesture
-  [animations
+  [x-pos
    disabled?
    track-width
-   slide-state]
-  (let [x-pos (:x-pos animations)]
-    (-> (gesture/gesture-pan)
-        (gesture/enabled (not @disabled?))
-        (gesture/min-distance 0)
-        (gesture/on-update (fn [event]
-                             (let [x-translation (oops/oget event "translationX")
-                                   clamped-x (clamp-value x-translation 0 track-width)
-                                   reached-end? (>= clamped-x track-width)]
-                               (reanimated/set-shared-value x-pos clamped-x)
-                               (when (and reached-end? (not= @slide-state :complete))
-                                 (reset! disabled? true)
-                                 (complete-animation animations slide-state)))))
-        (gesture/on-end (fn [event]
-                          (let [x-translation (oops/oget event "translationX")
-                                reached-end? (>= x-translation track-width)]
-                            (when (not reached-end?)
-                              (reset-track-position animations))))))))
+   sliding-complete?]
+  (-> (gesture/gesture-pan)
+      (gesture/enabled (not @disabled?))
+      (gesture/min-distance 0)
+      (gesture/on-update (fn [event]
+                           (let [x-translation (oops/oget event "translationX")
+                                 clamped-x (clamp-value x-translation 0 track-width)
+                                 reached-end? (>= clamped-x track-width)]
+                             (reanimated/set-shared-value x-pos clamped-x)
+                             (when (and reached-end? (not @sliding-complete?))
+                               (reset! disabled? true)
+                               (complete-animation sliding-complete?)))))
+      (gesture/on-end (fn [event]
+                        (let [x-translation (oops/oget event "translationX")
+                              reached-end? (>= x-translation track-width)]
+                          (when (not reached-end?)
+                            (reset-track-position x-pos)))))))
 

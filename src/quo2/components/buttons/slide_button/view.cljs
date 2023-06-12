@@ -11,20 +11,20 @@
    [oops.core :as oops]
    [react-native.reanimated :as reanimated]))
 
-(defn- f-slider [{:keys [on-complete
-                         track-text
-                         track-icon
-                         disabled?
-                         size]}]
+(defn- f-slider [{:keys [disabled?]}]
   (let [track-width (reagent/atom nil)
-        slide-state (reagent/atom :rest)
+        sliding-complete? (reagent/atom false)
         gestures-disabled? (reagent/atom disabled?)
         on-track-layout (fn [evt]
                           (let [width (oops/oget evt "nativeEvent" "layout" "width")]
                             (reset! track-width width)))]
 
-    (fn []
-      (let [animations (anim/init-animations)
+    (fn [{:keys [on-complete
+                 track-text
+                 track-icon
+                 disabled?
+                 size]}]
+      (let [x-pos (reanimated/use-shared-value 0)
             dimensions  (let [default-dimensions (case size
                                                    :small consts/small-dimensions
                                                    :large consts/large-dimensions
@@ -32,45 +32,41 @@
                           (merge default-dimensions
                                  {:track-width (anim/calc-usable-track
                                                 track-width
-                                                (:thumb default-dimensions))}))]
+                                                (:thumb default-dimensions))}))
+            interpolate-track (partial anim/interpolate-track
+                                       x-pos
+                                       (:track-width dimensions)
+                                       (:thumb dimensions))]
 
         (rn/use-effect (fn []
-                         (case @slide-state
-                           :complete (on-complete)
-                           nil))
-                       [@slide-state])
+                         (when @sliding-complete?
+                           (on-complete)))
+                       [@sliding-complete?])
 
-        [gesture/gesture-detector {:gesture (anim/drag-gesture animations
+        [gesture/gesture-detector {:gesture (anim/drag-gesture x-pos
                                                                gestures-disabled?
                                                                (:track-width dimensions)
-                                                               slide-state)}
+                                                               sliding-complete?)}
          [reanimated/view {:style (style/track-container (:height dimensions))}
           [reanimated/view {:style (style/track disabled?)
                             :on-layout (when-not (some? @track-width)
                                          on-track-layout)}
-           [reanimated/view {:style (style/track-success animations
-                                                         (:track-width dimensions)
-                                                         (:thumb dimensions))}
+           [reanimated/view {:style (style/track-success interpolate-track)}
             [icon/icon :check {:color (:text consts/slide-colors)
                                :size  20}]]
-           [reanimated/view {:style (style/track-cover animations
-                                                       (:track-width dimensions)
-                                                       (:thumb dimensions))}
+           [reanimated/view {:style (style/track-cover interpolate-track)}
             [rn/view {:style (style/track-cover-text-container @track-width)}
              [icon/icon track-icon {:color (:text consts/slide-colors)
                                     :size  20}]
              [rn/view {:width 4}]
              [rn/text {:style style/track-text} track-text]]]
-           [reanimated/view {:style (style/thumb-container animations (:track-width dimensions) (:thumb dimensions))}
-            [reanimated/view {:style (style/thumb-drop animations
-                                                       (:thumb dimensions)
-                                                       (:track-width dimensions))}
+           [reanimated/view {:style (style/thumb-container interpolate-track)}
+            [reanimated/view {:style (style/thumb-drop interpolate-track
+                                                       (:thumb dimensions))}
              [icon/icon track-icon {:color colors/white
                                     :size  20}]]
             [reanimated/view {:style (style/thumb (:thumb dimensions))}
-             [reanimated/view {:style (style/thumb-icon-container animations
-                                                                  (:thumb dimensions)
-                                                                  (:track-width dimensions))}
+             [reanimated/view {:style (style/thumb-icon-container interpolate-track)}
               [icon/icon :arrow-right {:color colors/white
                                        :size  20}]]]]]]]))))
 
