@@ -19,14 +19,11 @@
    {}))
 
 (defn thumb
-  [{:keys [x-pos]} size track-width]
-  (reanimated/apply-animations-to-style
-   {;:border-radius (anim/interpolate-track x-pos track-width size :thumb-border-radius)
-    }
-   {:width  size
-    :height size
-    :border-radius 12
-    :background-color (:thumb consts/slide-colors)}))
+  [size]
+  {:width  size
+   :height size
+   :border-radius 12
+   :background-color (:thumb consts/slide-colors)})
 
 (defn thumb-icon-container
   [{:keys [x-pos]} size track-width]

@@ -2,7 +2,6 @@
   (:require
    [quo2.components.buttons.slide-button.consts :as consts]
    [react-native.gesture :as gesture]
-   [quo.react :as react]
    [oops.core :as oops]
    [react-native.reanimated :as reanimated]))
 
@@ -79,8 +78,8 @@
    :out [0 0.7 0.85 1 1]})
 
 (def ^:private thumb-drop-scale-interpolation
-  {:in [0 0.2 0.5 0.85 1]
-   :out [0 0.3 0.6 1 1]})
+  {:in [0 0.3 0.5 0.85 1]
+   :out [0 0.5 0.7 1 1]})
 
 (def ^:private thumb-drop-z-index-interpolation
   {:in [0 0.75 1]
@@ -97,7 +96,7 @@
   `x-pos`            Track animated value
   `track-width`      Usable width of the track
   `thumb-size`       Size of the thumb
-  `interpolation` `  :thumb-border-radius`/`:thumb-drop-position`/`:thumb-drop-scale`/`:thumb-drop-z-index`/`:thumb-drop-color`/`:track-cover`/`track-clamp`"
+  `interpolation` `  :thumb-border-radius`/`:thumb-drop-position`/`:thumb-drop-scale`/`:thumb-drop-z-index`/..."
   ([x-pos track-width thumb-size interpolation]
    (let [interpolations {:track-cover (track-cover-interpolation track-width thumb-size)
                          :track-clamp (track-clamp-interpolation track-width)
@@ -159,10 +158,9 @@
    disabled?
    track-width
    slide-state]
-  (let [x-pos (:x-pos animations)
-        gestures-disabled? (react/state disabled?)]
+  (let [x-pos (:x-pos animations)]
     (-> (gesture/gesture-pan)
-        (gesture/enabled (not @gestures-disabled?))
+        (gesture/enabled (not @disabled?))
         (gesture/min-distance 0)
         (gesture/on-update (fn [event]
                              (let [x-translation (oops/oget event "translationX")
@@ -170,7 +168,7 @@
                                    reached-end? (>= clamped-x track-width)]
                                (reanimated/set-shared-value x-pos clamped-x)
                                (when (and reached-end? (not= @slide-state :complete))
-                                 (reset! gestures-disabled? true)
+                                 (reset! disabled? true)
                                  (complete-animation animations slide-state)))))
         (gesture/on-end (fn [event]
                           (let [x-translation (oops/oget event "translationX")
