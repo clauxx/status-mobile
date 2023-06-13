@@ -59,13 +59,10 @@
              [rn/text {:style style/track-text} track-text]]]
            [reanimated/view {:style (style/thumb-container interpolate-track)}
             [rn/view {:style (style/thumb-placeholder (:thumb dimensions))}]
-            [reanimated/view {:style (style/thumb interpolate-track (:thumb dimensions))}
+            [reanimated/view {:style (style/thumb (:thumb dimensions))}
              [reanimated/view {:style (style/arrow-icon-container interpolate-track (:thumb dimensions))}
               [icon/icon :arrow-right {:color colors/white
                                        :size  20}]]
-             [reanimated/view {:style (style/check-icon interpolate-track (:thumb dimensions))}
-              [icon/icon :check {:color colors/white
-                                 :size  20}]]
              [reanimated/view {:style (style/action-icon interpolate-track
                                                          (:thumb dimensions))}
               [icon/icon track-icon {:color colors/white

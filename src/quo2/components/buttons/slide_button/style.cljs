@@ -32,31 +32,17 @@
     :justify-content :center}))
 
 (defn thumb
-  [interpolate-track thumb-size]
-  (reanimated/apply-animations-to-style
-   {:width (interpolate-track :thumb-width)}
-   {:background-color (consts/slide-colors :thumb)
-    :border-radius 12
-    :position :absolute
-    :right 0
-    :top 0
-    :height thumb-size
-    :align-items :center
-    :overflow :hidden
-    :justify-content :center}))
-
-(defn check-icon
-  [interpolate-track thumb-size]
-  (reanimated/apply-animations-to-style
-   {:transform [{:translate-x (interpolate-track :check-icon-position)}]}
-   {:width thumb-size
-    :height thumb-size
-    :position :absolute
-    :top 0
-    :left 0
-    :z-index 2
-    :align-items :center
-    :justify-content :center}))
+  [thumb-size]
+  {:background-color (consts/slide-colors :thumb)
+   :border-radius 12
+   :position :absolute
+   :right 0
+   :top 0
+   :height thumb-size
+   :width thumb-size
+   :align-items :center
+   :overflow :hidden
+   :justify-content :center})
 
 (defn action-icon
   [interpolate-track size]

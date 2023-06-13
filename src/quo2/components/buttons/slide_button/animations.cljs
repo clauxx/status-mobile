@@ -36,25 +36,15 @@
   {:in [0 1]
    :out [(/ thumb-size 2) track-width]})
 
-(defn- thumb-width-interpolation
-  [thumb-size]
-  {:in [0 0.85 1]
-   :out [thumb-size thumb-size (* thumb-size 2)]})
-
 (defn- arrow-icon-position-interpolation
   [thumb-size]
-  {:in [0 0.85 1]
-   :out [0 0 (- (* thumb-size 1.5))]})
+  {:in [0.9 1]
+   :out [0 (- thumb-size)]})
 
 (defn- action-icon-position-interpolation
   [thumb-size]
-  {:in [0 0.85 1]
-   :out [thumb-size thumb-size 0]})
-
-(defn- check-icon-position-interpolation
-  [thumb-size]
-  {:in [0 0.85 1]
-   :out [(* thumb-size 2) (* thumb-size 2) thumb-size]})
+  {:in [0.9 1]
+   :out [thumb-size 0]})
 
 (defn interpolate-track
   "Interpolate the position in the track
@@ -65,8 +55,6 @@
   ([x-pos track-width thumb-size interpolation]
    (let [interpolations {:track-cover (track-cover-interpolation track-width thumb-size)
                          :track-clamp (track-clamp-interpolation track-width)
-                         :thumb-width (thumb-width-interpolation thumb-size)
-                         :check-icon-position (check-icon-position-interpolation thumb-size)
                          :action-icon-position (action-icon-position-interpolation thumb-size)
                          :arrow-icon-position (arrow-icon-position-interpolation thumb-size)}
 
