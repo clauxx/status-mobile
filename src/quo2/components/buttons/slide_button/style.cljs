@@ -17,26 +17,24 @@
    {:transform [{:translate-x (interpolate-track :track-clamp)}]}
    {}))
 
-(defn thumb
+(defn thumb-placeholder
   [size]
   {:width  size
-   :height size
-   :border-radius 12
-   :z-index 1})
+   :height size})
 
-(defn thumb-icon-container
+(defn arrow-icon-container
   [interpolate-track thumb-size]
   (reanimated/apply-animations-to-style
-   {:transform [{:translate-x (interpolate-track :thumb-icon-position)}]}
+   {:transform [{:translate-x (interpolate-track :arrow-icon-position)}]}
    {:width thumb-size
     :height thumb-size
     :align-items :center
     :justify-content :center}))
 
-(defn success-bg
+(defn thumb
   [interpolate-track thumb-size]
   (reanimated/apply-animations-to-style
-   {:width (interpolate-track :success-bg-width)}
+   {:width (interpolate-track :thumb-width)}
    {:background-color (consts/slide-colors :thumb)
     :border-radius 12
     :position :absolute
@@ -47,10 +45,10 @@
     :overflow :hidden
     :justify-content :center}))
 
-(defn check
+(defn check-icon
   [interpolate-track thumb-size]
   (reanimated/apply-animations-to-style
-   {:transform [{:translate-x (interpolate-track :check-position)}]}
+   {:transform [{:translate-x (interpolate-track :check-icon-position)}]}
    {:width thumb-size
     :height thumb-size
     :position :absolute
@@ -60,10 +58,10 @@
     :align-items :center
     :justify-content :center}))
 
-(defn thumb-drop
+(defn action-icon
   [interpolate-track size]
   (reanimated/apply-animations-to-style
-   {:transform [{:translate-x (interpolate-track :thumb-drop-position)}]}
+   {:transform [{:translate-x (interpolate-track :action-icon-position)}]}
    {:height size
     :width size
     :position :absolute

@@ -36,31 +36,25 @@
   {:in [0 1]
    :out [(/ thumb-size 2) track-width]})
 
-(defn- thumb-icon-position-interpolation
-  [thumb-size]
-  {:in [0 0.85 1]
-   :out [0 0 (- (* thumb-size 1.5))]})
-
-(defn- thumb-drop-position-interpolation
-  [thumb-size]
-  {:in [0 0.85 1]
-   :out [thumb-size thumb-size 0]})
-
-(defn- success-bg-width-interpolation
+(defn- thumb-width-interpolation
   [thumb-size]
   {:in [0 0.85 1]
    :out [thumb-size thumb-size (* thumb-size 2)]})
 
-(defn- check-position-interpolation
+(defn- arrow-icon-position-interpolation
+  [thumb-size]
+  {:in [0 0.85 1]
+   :out [0 0 (- (* thumb-size 1.5))]})
+
+(defn- action-icon-position-interpolation
+  [thumb-size]
+  {:in [0 0.85 1]
+   :out [thumb-size thumb-size 0]})
+
+(defn- check-icon-position-interpolation
   [thumb-size]
   {:in [0 0.85 1]
    :out [(* thumb-size 2) (* thumb-size 2) thumb-size]})
-
-(def ^:private thumb-drop-color-interpolation
-  (let [main-col (:thumb consts/slide-colors)
-        dark-col "#0a2bdb"]
-    {:in [0 0.60 0.75 1]
-     :out [dark-col dark-col main-col main-col]}))
 
 (defn interpolate-track
   "Interpolate the position in the track
@@ -71,29 +65,21 @@
   ([x-pos track-width thumb-size interpolation]
    (let [interpolations {:track-cover (track-cover-interpolation track-width thumb-size)
                          :track-clamp (track-clamp-interpolation track-width)
-                         :success-bg-width (success-bg-width-interpolation thumb-size)
-                         :check-position (check-position-interpolation thumb-size)
-                         :thumb-drop-position (thumb-drop-position-interpolation thumb-size)
-                         :thumb-icon-position (thumb-icon-position-interpolation thumb-size)}
+                         :thumb-width (thumb-width-interpolation thumb-size)
+                         :check-icon-position (check-icon-position-interpolation thumb-size)
+                         :action-icon-position (action-icon-position-interpolation thumb-size)
+                         :arrow-icon-position (arrow-icon-position-interpolation thumb-size)}
 
-         color-interpolations {:thumb-drop-color thumb-drop-color-interpolation}
-         color-interpolation? (contains? color-interpolations interpolation)
-         interpolation-values (interpolation (if color-interpolation?
-                                               color-interpolations
-                                               interpolations))
+         interpolation-values (interpolation interpolations)
          output (:out interpolation-values)
          input (-> (:in interpolation-values)
                    (track-interpolation-inputs track-width))]
      (if (nil? interpolation-values)
        x-pos
-       (if color-interpolation?
-         (reanimated/interpolate-color x-pos
-                                       input
-                                       output)
-         (reanimated/interpolate x-pos
-                                 input
-                                 output
-                                 extrapolation))))))
+       (reanimated/interpolate x-pos
+                               input
+                               output
+                               extrapolation)))))
 
 ;; Animations
 (defn- animate-spring
